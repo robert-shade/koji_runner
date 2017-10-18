@@ -568,7 +568,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
 
     kojiHandler = logging.StreamHandler()
-    kojiHandler.setLevel(logging.DEBUG)
+    kojiHandler.setLevel(logging.INFO)
     kojiHandler.setFormatter(CustomFormatter('%(asctime)s.%(msecs)03d [%(thread)d][%(gitlab_job_id)s][%(koji_task_id)s] %(message)s', "%Y-%m-%d %H:%M:%S"))
 
     logging.getLogger(LOG).addHandler(kojiHandler)
