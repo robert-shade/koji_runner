@@ -1,0 +1,3 @@
+[submodule "koji"]
+	path = koji
+	url = https://pagure.io/koji.git
