@@ -170,7 +170,8 @@ class KojiTaskWatcher(object):
                         is_done=self.is_done()),
                 extra={ "koji_task_id" : self.id, "gitlab_job_id" : self.job["id"] })
 
-        return self.is_done() and all_children_done
+        # Return True until we and our childeren have finished
+        return not (self.is_done() and all_children_done)
 
 class GitlabJobPoller:
     def __init__(self, url, token):
@@ -273,7 +274,7 @@ class KojiGitlabJobWorker:
                             self.append_build_trace,
                             self.capture_artifact)
 
-            while not parent_task.update():
+            while parent_task.update():
 
                 if self.job["status"].lower() == "canceled":
                     parent_task.cancel()
