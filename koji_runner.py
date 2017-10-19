@@ -199,12 +199,13 @@ class GitlabJobPoller:
         return None
 
 class KojiGitlabJobWorker:
-    def __init__(self, job, gitlab_url, koji_url, koji_client_cert, koji_server_ca):
+    def __init__(self, job, gitlab_url, koji_url, koji_client_cert, koji_client_ca, koji_server_ca):
         self.job = job
         self.requests_session = requests.Session()
         self.gitlab_url = gitlab_url
         self.koji_url = koji_url
         self.koji_client_cert = koji_client_cert
+        self.koji_client_ca = koji_client_ca
         self.koji_server_ca = koji_server_ca
 
         self.artifacts_temp_dir = tempfile.mkdtemp(suffix="artifacts")
@@ -244,7 +245,7 @@ class KojiGitlabJobWorker:
                 raise Exception("No build target specified")
 
             koji_session = koji.ClientSession(self.koji_url)
-            koji_session.ssl_login(self.koji_client_cert, None, self.koji_server_ca, proxyuser=None)
+            koji_session.ssl_login(self.koji_client_cert, self.koji_client_ca, self.koji_server_ca, proxyuser=None)
 
             try:
                 logging.getLogger(LOG_KOJI_SESSION).debug("Logging into Koji", extra={ "gitlab_job_id" : self.job["id"] })
@@ -472,6 +473,7 @@ class KojiGitlabRunner:
 
         self.koji_url = options["koji_url"]
         self.koji_client_cert = options["koji_client_cert"]
+        self.koji_client_ca = options["koji_client_ca"]
         self.koji_server_ca = options["koji_server_ca"]
 
         self.num_workers = 5
@@ -495,7 +497,10 @@ class KojiGitlabRunner:
             KojiGitlabJobWorker(\
                 job, \
                 self.gitlab_url, \
-                self.koji_url, self.koji_client_cert, self.koji_server_ca).process()
+                self.koji_url, \
+                self.koji_client_cert, \
+                self.koji_client_ca, \
+                self.koji_server_ca).process()
             
             logging.getLogger(LOG_JOB_MANAGEMENT).info("Job Complete", extra = { "gitlab_job_id" : job["id"] })
 
@@ -537,6 +542,7 @@ def main():
     parser.add_argument("-u", "--koji-user", dest='koji_user', help="User %(prog)s will authenticate to Koji with", required=False)
     parser.add_argument("--koji-url", dest='koji_url', required=False)
     parser.add_argument("--client-crt", dest='client_cert', required=False)
+    parser.add_argument("--client-ca", dest='client_ca', required=False)
     parser.add_argument("--server-ca", dest='server_ca', required=False)
 
     args = parser.parse_args()
@@ -547,6 +553,7 @@ def main():
     opts["koji_url"] = os.environ.get('KOJI_URL', args.koji_url)	
     opts["koji_user"] = os.environ.get('KOJI_USER', args.koji_user)	
     opts["koji_client_cert"] = os.environ.get('KOJI_CLIENT_CERT', args.client_cert)
+    opts["koji_client_ca"] = os.environ.get('KOJI_CLIENT_CA', args.client_ca)
     opts["koji_server_ca"] = os.environ.get('KOJI_SERVER_CA', args.server_ca)
 
     opts["gitlab_url"] = re.sub('\/ci\/?$', '', opts["gitlab_url"])
