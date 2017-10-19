@@ -162,7 +162,7 @@ class KojiTaskWatcher(object):
                 else:
                     break
 
-        logging.getLogger(LOG_KOJI_TASK).info(
+        logging.getLogger(LOG_KOJI_TASK).debug(
                 "Koji Task - State: {state}, Done: {is_done}"
                     .format(
                         task_id=self.id, 
