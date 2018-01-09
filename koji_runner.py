@@ -330,6 +330,10 @@ class KojiGitlabJobWorker:
     def upload_artifacts(self):
         try:
             for artifacts_opts in self.job["artifacts"] if "artifacts" in self.job else []:
+
+                if artifacts_opts is None:
+                    continue
+
                 artifact_archive_name = "artifacts.zip"
                 artifact_archive_files = []
                 upload_archive = True
